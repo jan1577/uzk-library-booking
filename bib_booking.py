@@ -7,6 +7,9 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
+# import login credentials
+import config
+
 
 def booking(url, day, first_seat, last_seat, start, end):
     # first/last: first/last seat to check, start/end: start/end time
@@ -113,9 +116,9 @@ def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
 
 if __name__ == '__main__':
     # login credentials // website
-    username = None
-    password = None
-    path = None
+    username = config.username
+    password = config.password
+    path = config.path
     # urls
     url_l4 = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4"
     url_vwl = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL"
