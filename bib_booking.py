@@ -12,11 +12,19 @@ import config
 
 
 def booking(url, day, first_seat, last_seat, start, end):
-    # first/last: first/last seat to check, start/end: start/end time
+    """
+    Book a seat for a given day and time.
+    :param url: where to book, link
+    :param day: when to book, integer; 1 = today, 8 = last day
+    :param first_seat: seats to check, integer; loops from first to last
+    :param last_seat: see above
+    :param start: time to start booking, integer; first hour = 3 (9-10 / 10-11)
+    :param end: time to end booking, integer; last hour = 10 for HWA/ VWL, 17 for L4
+    :return: True if booking done, False if not possible (No seats available or max time for a day reached.)
+    """
     login(url)
     booked = False
-    # book a space on most recent day || lesesaal 4 9-15, vwl bib 9-13, hwa 10-14
-    # check all seats
+    # check for all seats if bookable for given time span
     for current_seat in range(first_seat, last_seat):
         bookable = True
         # check if seat booked somewhere between start time and end time, every hour is own slot
@@ -31,9 +39,6 @@ def booking(url, day, first_seat, last_seat, start, end):
         else:
             # all slots available for one seat -> book that seat
             # first hour to book
-            # day || 1 = current day, 8 = last day
-            # timeslot: start/end|| 3 = 9AM-10AM, 8= 2PM-3MP, 17= 11 pm-12 am
-            # current_seat: table_id || last number(s) of table id
             xpath_start = "/html/body/div[1]/div[3]/div/div/div/div[{0}]/div/div/div[2]/table/tbody/tr[{1}]/td[{2}]".format(
                 str(day), str(start), str(current_seat))
             # last hour to book
@@ -58,7 +63,7 @@ def booking(url, day, first_seat, last_seat, start, end):
                 elif "Buchung war erfolgreich." in message:
                     # booking executed
                     print("Booking confirmed! Seat {}".format(current_seat))
-                    print(datetime.datetime.now())
+                    print(datetime.datetime.now().replace(microsecond=0))
                     booked = True
                     break
                 else:
@@ -73,9 +78,7 @@ def booking(url, day, first_seat, last_seat, start, end):
                     already_booked = verify_slotowner(day, 3, 10, first_seat, last_seat)
 
                 if already_booked:
-                    print("You have already booked a seat for this day.")
-                    driver.quit()
-                    quit()
+                    break
                 else:
                     print("Seat {} could not be booked. Could not verify slot owner. Trying to cancel".format(
                         current_seat))
@@ -90,6 +93,11 @@ def booking(url, day, first_seat, last_seat, start, end):
 
 
 def login(url):
+    """
+    passes login credentials and executes login
+    :param url: link for website (where to book)
+    :return: no return value
+    """
     # opening the website in chrome
     driver.get(url)
     # find username field and insert username
@@ -102,6 +110,11 @@ def login(url):
 
 
 def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
+    """
+    Verifies if a seat is already booked for current day. Only called if seat available, but booking not possible.
+    :params: see booking()
+    :return: True if a seat is already booked, False if not
+    """
     verify = False
     for seat in range(first_seat, last_seat):
         for hour in range(start_time, end_time + 1):
@@ -109,36 +122,42 @@ def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
                 str(day), str(hour), str(seat))
             timeslot = driver.find_element(By.XPATH, xpath_hour)
             if timeslot.get_attribute("class") == "slot booked slotowner normal":
+                duration = int(timeslot.get_attribute("rowspan"))
+                print("Already booked seat {0}.".format(seat))
+                # todo: add time where seat is booked # differs depending on url
                 verify = True
                 break
     return verify
 
 
 if __name__ == '__main__':
-    # login credentials // website
+    # login credentials & chromedriver.exe path
     username = config.username
     password = config.password
     path = config.path
-    # urls
+    # urls for booking
     url_l4 = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4"
     url_vwl = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL"
     url_hwa = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS"
-    # path chromedriver exe file
-
     chrome_options = Options()
     # initialising driver
     driver = webdriver.Chrome(path, options=chrome_options)
     driver.maximize_window()
 
-    print(datetime.datetime.now())
+    print(datetime.datetime.now().replace(microsecond=0))
     print("Lesesaal 4:")
+
+    # check l4 for booking, last day, 9AM - 3PM
     if booking(url_l4, 8, 3, 51, 3, 9) == False:
         print("\nVWL:")
+        # check VWL, last day, 9AM - 1PM
         if booking(url_vwl, 8, 5, 25, 3, 7) == False:
             # vwl: 5, 7, 8?, 9?
             print("\nHWA:")
+            # check HWA, 10AM - 2PM
             if booking(url_hwa, 8, 21, 36, 3, 7) == False:
                 print("\nBooking not possible.")
+        # if VWL booked, try HWA from 3PM - 6PM
         else:
             if booking(url_hwa, 8, 21, 36, 8, 11) == True:
                 print("Additional Seat booked at HWA.")
