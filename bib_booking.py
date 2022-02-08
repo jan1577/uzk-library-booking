@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-def booking(url, first_seat, last_seat, start, end):
+def booking(url, day, first_seat, last_seat, start, end):
     # first/last: first/last seat to check, start/end: start/end time
     login(url)
     booked = False
@@ -16,9 +16,9 @@ def booking(url, first_seat, last_seat, start, end):
     # check all seats
     for current_seat in range(first_seat, last_seat):
         bookable = True
-        # check if seat booked somewhere between 9 and 3, every hour is own slot
+        # check if seat booked somewhere between start time and end time, every hour is own slot
         for j in range(start, end):
-            slot = "/html/body/div[1]/div[3]/div/div/div/div[8]/div/div/div[2]/table/tbody/tr[" + str(
+            slot = "/html/body/div[1]/div[3]/div/div/div/div[" + str(day) + "]/div/div/div[2]/table/tbody/tr[" + str(
                 j) + "]/td[" + str(current_seat) + "]"
             if driver.find_element(By.XPATH, slot).get_attribute("title") != "buchbar":
                 bookable = False
@@ -31,10 +31,10 @@ def booking(url, first_seat, last_seat, start, end):
             #                                                   day || 1 = current day, 8 = last day
             #                                                                                     timeslot || 3 = 9AM-10AM, 8= 2PM-3MP
             #                                                                                                  table_id || last number(s) of table id
-            xpath_start = "/html/body/div[1]/div[3]/div/div/div/div[8]/div/div/div[2]/table/tbody/tr[" + str(
+            xpath_start = "/html/body/div[1]/div[3]/div/div/div/div[" + str(day) + "]/div/div/div[2]/table/tbody/tr[" + str(
                 start) + "]/td[" + str(current_seat) + "]"
             # last hour to book
-            xpath_end = "/html/body/div[1]/div[3]/div/div/div/div[8]/div/div/div[2]/table/tbody/tr[" + str(
+            xpath_end = "/html/body/div[1]/div[3]/div/div/div/div[" + str(day) + "]/div/div/div[2]/table/tbody/tr[" + str(
                 end - 1) + "]/td[" + str(current_seat) + "]"
             # select first hour + last hour to book rowspan from first to last hour
             driver.find_element(By.XPATH, xpath_start).click()
@@ -63,13 +63,14 @@ def booking(url, first_seat, last_seat, start, end):
                 # except: no message
                 # try: check if already booked hours for that day; verify slotowner returns boolean
                 if url == url_l4:
-                    already_booked = verify_slotowner(url, 3, 17, first_seat, last_seat)
+                    already_booked = verify_slotowner(day, 3, 17, first_seat, last_seat)
                 else:
-                    already_booked = verify_slotowner(url, 3, 10, first_seat, last_seat)
+                    already_booked = verify_slotowner(day, 3, 10, first_seat, last_seat)
 
                 if already_booked:
                     print("You have already booked a seat for this day.")
                     driver.quit()
+                    quit()
                 else:
                     print("Seat {} could not be booked. Could not verify slotowner. Trying to cancel".format(current_seat))
                     # except: try to cancel seat and continue with next seat
@@ -94,11 +95,11 @@ def login(url):
     time.sleep(5)
 
 
-def verify_slotowner(url, start_time, end_time, first_seat, last_seat):
+def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
     verify = False
     for seat in range(first_seat, last_seat):
         for hour in range(start_time, end_time + 1):
-            xpath_hour = "/html/body/div[1]/div[3]/div/div/div/div[8]/div/div/div[2]/table/tbody/tr[" + str(
+            xpath_hour = "/html/body/div[1]/div[3]/div/div/div/div[" + str(day)+ "]/div/div/div[2]/table/tbody/tr[" + str(
                 hour) + "]/td[" + str(seat) + "]"
             timeslot = driver.find_element(By.XPATH, xpath_hour)
             if timeslot.get_attribute("class") == "slot booked slotowner normal":
@@ -125,15 +126,15 @@ if __name__ == '__main__':
 
     print(datetime.datetime.now())
     print("Lesesaal 4:")
-    if booking(url_l4, 3, 51, 3, 9) == False:
+    if booking(url_l4, 8, 3, 51, 3, 9) == False:
         print("\nVWL:")
-        if booking(url_vwl, 5, 25, 3, 7) == False:
+        if booking(url_vwl, 8, 5, 25, 3, 7) == False:
             # vwl: 5, 7, 8?, 9?
             print("\nHWA:")
-            if booking(url_hwa, 21, 36, 3, 7) == False:
+            if booking(url_hwa, 8, 21, 36, 3, 7) == False:
                 print("\nBooking not possible.")
         else:
-            if booking(url_hwa, 21, 36, 8, 11) == True:
+            if booking(url_hwa, 8, 21, 36, 8, 11) == True:
                 print("Additional Seat booked at HWA.")
             else:
                 print("Could not book additional seat.")
