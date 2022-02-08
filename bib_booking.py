@@ -61,7 +61,7 @@ def booking(url, first_seat, last_seat, start, end):
                     print("Seat {} could not be booked. {}".format(current_seat, message))
             except:
                 # except: no message
-                # try: check if already booked hours for that day
+                # try: check if already booked hours for that day; verify slotowner returns boolean
                 if url == url_l4:
                     already_booked = verify_slotowner(url, 3, 17, first_seat, last_seat)
                 else:
@@ -71,14 +71,14 @@ def booking(url, first_seat, last_seat, start, end):
                     print("You have already booked a seat for this day.")
                     driver.quit()
                 else:
-                    print("Seat {} could not be booked. Couldn't verify slotowner. Trying to cancel".format(current_seat))
+                    print("Seat {} could not be booked. Could not verify slotowner. Trying to cancel".format(current_seat))
                     # except: try to cancel seat and continue with next seat
                     try:
                         driver.find_element(By.ID, "btn-cancel").click()
                         time.sleep(3)
                         print("Seat {} Canceled.".format(current_seat))
                     except:
-                        print("Seat could not be booked. [final except]")
+                        print("Seat could not be booked. Could not cancel.")
     return booked
 
 
