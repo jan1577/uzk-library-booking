@@ -14,7 +14,7 @@ import config
 def booking(url, day, first_seat, last_seat, start, end):
     """
     Book a seat for a given day and time.
-    :param url: where to book, link
+    :param url: where to book, list [name, link]
     :param day: when to book, integer; 1 = today, 8 = last day
     :param first_seat: seats to check, integer; loops from first to last
     :param last_seat: see above
@@ -22,7 +22,8 @@ def booking(url, day, first_seat, last_seat, start, end):
     :param end: time to end booking, integer; last hour = 10 for HWA/ VWL, 17 for L4
     :return: True if booking done, False if not possible (No seats available or max time for a day reached.)
     """
-    login(url)
+    login(url[1])  # website login
+    print(url[0])  # print name of website # todo: print requested time and day
     booked = False
     # check for all seats if bookable for given time span
     for current_seat in range(first_seat, last_seat):
@@ -50,29 +51,26 @@ def booking(url, day, first_seat, last_seat, start, end):
             driver.find_element(By.XPATH, xpath_end).click()
 
             try:
-                # try: analyze message after trying to book
+                # analyze message after trying to book
                 message = WebDriverWait(driver, 10).until(
                     EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'alert') and "
                                                                 "@data-notify='container']//span["
                                                                 "@data-notify='message']"))).get_attribute(
                     "innerHTML")
                 if "Max. Buchung" in message:
-                    # already booked maximum hours for one day
                     print("Max. Buchungszeit! Keine Buchung möglich.")
                     break
                 elif "Buchung war erfolgreich." in message:
-                    # booking executed
                     print("Booking confirmed! Seat {}".format(current_seat))
                     print(datetime.datetime.now().replace(microsecond=0))
                     booked = True
                     break
                 else:
-                    # booking not possible, print message to get more information
                     print("Seat {} could not be booked. {}".format(current_seat, message))
             except:
                 # except: no message
-                # try: check if already booked hours for that day; verify slot owner returns boolean
-                if url == url_l4:
+                # check if already booked hours for that day; verify slot owner returns boolean
+                if url[1] == url_l4:
                     already_booked = verify_slotowner(day, 3, 17, first_seat, last_seat)
                 else:
                     already_booked = verify_slotowner(day, 3, 10, first_seat, last_seat)
@@ -82,7 +80,6 @@ def booking(url, day, first_seat, last_seat, start, end):
                 else:
                     print("Seat {} could not be booked. Could not verify slot owner. Trying to cancel".format(
                         current_seat))
-                    # except: try to cancel seat and continue with next seat
                     try:
                         driver.find_element(By.ID, "btn-cancel").click()
                         time.sleep(3)
@@ -136,24 +133,19 @@ if __name__ == '__main__':
     password = config.password
     path = config.path
     # urls for booking
-    url_l4 = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4"
-    url_vwl = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL"
-    url_hwa = "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS"
-    chrome_options = Options()
+    url_l4 = ["Lesesaal 4:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4"]
+    url_vwl = ["VWL:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL"]
+    url_hwa = ["HWA:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS"]
     # initialising driver
+    chrome_options = Options()
     driver = webdriver.Chrome(path, options=chrome_options)
     driver.maximize_window()
 
     print(datetime.datetime.now().replace(microsecond=0))
-    print("Lesesaal 4:")
-
     # check l4 for booking, last day, 9AM - 3PM
     if booking(url_l4, 8, 3, 51, 3, 9) == False:
-        print("\nVWL:")
         # check VWL, last day, 9AM - 1PM
         if booking(url_vwl, 8, 5, 25, 3, 7) == False:
-            # vwl: 5, 7, 8?, 9?
-            print("\nHWA:")
             # check HWA, 10AM - 2PM
             if booking(url_hwa, 8, 21, 36, 3, 7) == False:
                 print("\nBooking not possible.")
