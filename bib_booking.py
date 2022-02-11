@@ -26,25 +26,25 @@ def booking(url, day, first_seat, last_seat, start, end):
     print(url[0])  # print name of website # todo: print requested time and day
     booked = False
     # check for all seats if bookable for given time span
-    for current_seat in range(first_seat, last_seat):
+    for seat_id in range(first_seat, last_seat):
         bookable = True
         # check if seat booked somewhere between start time and end time, every hour is own slot
         for hour in range(start, end):
             slot = "/html/body/div[1]/div[3]/div/div/div/div[{0}]/div/div/div[2]/table/tbody/tr[{1}]/td[{2}]".format(
-                str(day), str(hour), str(current_seat))
+                str(day), str(hour), str(seat_id))
             if driver.find_element(By.XPATH, slot).get_attribute("title") != "buchbar":
                 bookable = False
 
         if not bookable:
-            print("Seat {} not available".format(current_seat))
+            print("Seat {} not available".format(seat_id))
         else:
             # all slots available for one seat -> book that seat
             # first hour to book
             xpath_start = "/html/body/div[1]/div[3]/div/div/div/div[{0}]/div/div/div[2]/table/tbody/tr[{1}]/td[{2}]".format(
-                str(day), str(start), str(current_seat))
+                str(day), str(start), str(seat_id))
             # last hour to book
             xpath_end = "/html/body/div[1]/div[3]/div/div/div/div[{0}]/div/div/div[2]/table/tbody/tr[{1}]/td[{2}]".format(
-                str(day), str(end - 1), str(current_seat))
+                str(day), str(end - 1), str(seat_id))
             # select first hour + last hour to book rowspan from first to last hour
             driver.find_element(By.XPATH, xpath_start).click()
             time.sleep(3)
@@ -61,12 +61,12 @@ def booking(url, day, first_seat, last_seat, start, end):
                     print("Max. Buchungszeit! Keine Buchung möglich.")
                     break
                 elif "Buchung war erfolgreich." in message:
-                    print("Booking confirmed! Seat {}".format(current_seat))
+                    print("Booking confirmed! Seat {}".format(seat_id))
                     print(datetime.datetime.now().replace(microsecond=0))
                     booked = True
                     break
                 else:
-                    print("Seat {} could not be booked. {}".format(current_seat, message))
+                    print("Seat {} could not be booked. {}".format(seat_id, message))
             except:
                 # except: no message
                 # check if already booked hours for that day; verify slot owner returns boolean
@@ -79,11 +79,11 @@ def booking(url, day, first_seat, last_seat, start, end):
                     break
                 else:
                     print("Seat {} could not be booked. Could not verify slot owner. Trying to cancel".format(
-                        current_seat))
+                        seat_id))
                     try:
                         driver.find_element(By.ID, "btn-cancel").click()
                         time.sleep(3)
-                        print("Seat {} Canceled.".format(current_seat))
+                        print("Seat {} Canceled.".format(seat_id))
                     except:
                         print("Seat could not be booked. Could not cancel.")
     return booked
@@ -112,7 +112,7 @@ def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
     :params: see booking()
     :return: True if a seat is already booked, False if not
     """
-    verify = False
+    verified = False
     for seat in range(first_seat, last_seat):
         for hour in range(start_time, end_time + 1):
             xpath_hour = "/html/body/div[1]/div[3]/div/div/div/div[{0}]/div/div/div[2]/table/tbody/tr[{1}]/td[{2}]".format(
@@ -120,11 +120,11 @@ def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
             timeslot = driver.find_element(By.XPATH, xpath_hour)
             if timeslot.get_attribute("class") == "slot booked slotowner normal":
                 duration = int(timeslot.get_attribute("rowspan"))
-                print("Already booked seat {0}.".format(seat))
+                print("Already booked seat {0}, {1} hours.".format(seat, duration))
                 # todo: add time where seat is booked # differs depending on url
-                verify = True
+                verified = True
                 break
-    return verify
+    return verified
 
 
 if __name__ == '__main__':
