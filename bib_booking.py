@@ -14,7 +14,7 @@ import config
 def booking(url, day, first_seat, last_seat, start, end):
     """
     Book a seat for a given day and time.
-    :param url: where to book, list [name, link]
+    :param url: where to book, tuple (name, link)
     :param day: when to book, integer; 1 = today, 8 = last day
     :param first_seat: seats to check, integer; loops from first to last
     :param last_seat: see above
@@ -133,9 +133,9 @@ if __name__ == '__main__':
     password = config.password
     path = config.path
     # urls for booking
-    url_l4 = ["Lesesaal 4:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4"]
-    url_vwl = ["VWL:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL"]
-    url_hwa = ["HWA:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS"]
+    url_l4 = ("Lesesaal 4:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4")
+    url_vwl = ("VWL:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL")
+    url_hwa = ("HWA:", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS")
     # initialising driver
     chrome_options = Options()
     driver = webdriver.Chrome(path, options=chrome_options)
