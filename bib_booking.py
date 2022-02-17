@@ -79,9 +79,9 @@ def booking(url, day, first_seat, last_seat, start, end):
                 # except: no message
                 # check if already booked hours for that day; verify slot owner returns boolean
                 if url[1] == url_l4:
-                    already_booked = verify_slotowner(day, 3, 17, first_seat, last_seat)
+                    already_booked = verify_slotowner(url[1], day, 3, 17, first_seat, last_seat)
                 else:
-                    already_booked = verify_slotowner(day, 3, 10, first_seat, last_seat)
+                    already_booked = verify_slotowner(url[1], day, 3, 10, first_seat, last_seat)
 
                 if already_booked:
                     break
@@ -133,10 +133,15 @@ def get_requested_date(url, day, start_time, end_time, time_shift):
 
 
 
-def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
+def verify_slotowner(url, day, start_time, end_time, first_seat, last_seat):
     """
     Verifies if a seat is already booked for current day. Only called if seat available, but booking not possible.
-    :params: see booking()
+    :param url: link, where to book
+    :param day: when to book, integer; 1 = today, 8 = last day
+    :param start_time: time to start booking, integer; first hour = 3 (9-10 / 10-11)
+    :param end_time: time to end booking, integer; last hour = 10 for HWA/ VWL, 17 for L4
+    :param first_seat: seats to check, integer; loops from first to last
+    :param last_seat: see above
     :return: True if a seat is already booked, False if not
     """
     verified = False
@@ -147,8 +152,10 @@ def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
             timeslot = driver.find_element(By.XPATH, xpath_hour)
             if timeslot.get_attribute("class") == "slot booked slotowner normal":
                 duration = int(timeslot.get_attribute("rowspan"))
-                print("Already booked seat {0}, {1} hours.".format(seat, duration))
-                # todo: add time where seat is booked # differs depending on url
+                if url == url_l4[1] or url_vwl[1]:
+                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 7, hour+7+duration))
+                else:
+                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 8, hour+8+duration))
                 verified = True
                 break
     return verified
