@@ -25,15 +25,10 @@ def booking(url, day, first_seat, last_seat, start, end):
     """
     login(url[1])  # website login
     # print requested location, time and date to book
-    today = dt.today()
-    requested = datetime.timedelta(days=day-1)
-    requested_day = today + requested
     if url == url_l4 or url == url_vwl:
-        print("\nChecking {0} from {1} to {2} on {3}, {4}:".format(
-            url[0], start+6, end+6, requested_day.strftime("%A"), requested_day.strftime("%d.%m.%Y").split()[0]))
+        get_requested_date(url[0], day, start, end, 6)
     else:
-        print("\nChecking {0} from {1} to {2} on {3}, {4}:".format(
-            url[0], start+7, end+7, requested_day.strftime("%A"), requested_day.strftime("%d.%m.%Y").split()[0]))
+        get_requested_date(url[0], day, start, end, 7)
 
     booked = False
     # check for all seats if bookable for given time span
@@ -117,6 +112,25 @@ def login(url):
     # click on submit
     driver.find_element(By.ID, "btn-login").click()
     time.sleep(5)
+
+
+def get_requested_date(url, day, start_time, end_time, time_shift):
+    """
+    Get's requested date given input day (1-8); prints location, date and time of current booking request
+    :param url: String, where to book
+    :param day: int from 1-8; today = 1, 7 days ahead = 8
+    :param start_time: int, start time of booking request
+    :param end_time: int, end time of booking request
+    :param time_shift: int; value used to convert integer used for booking to 24h time
+    :return: no return value
+    """
+    today = dt.today()
+    requested = datetime.timedelta(days=day - 1)
+    requested_day = today + requested
+    print("\nChecking {0} from {1} to {2} on {3}, {4}:".format(
+        url, start_time + time_shift, end_time + time_shift, requested_day.strftime("%A"),
+        requested_day.strftime("%d.%m.%Y").split()[0]))
+
 
 
 def verify_slotowner(day, start_time, end_time, first_seat, last_seat):
