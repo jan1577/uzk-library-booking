@@ -79,9 +79,9 @@ def booking(url, day, first_seat, last_seat, start, end):
                 # except: no message
                 # check if already booked hours for that day; verify slot owner returns boolean
                 if url[1] == url_l4:
-                    already_booked = verify_slotowner(url[1], day, 3, 17, first_seat, last_seat)
+                    already_booked = verify_slotowner(url[1], day, 3, 17, first_seat, last_seat)[0]
                 else:
-                    already_booked = verify_slotowner(url[1], day, 3, 10, first_seat, last_seat)
+                    already_booked = verify_slotowner(url[1], day, 3, 10, first_seat, last_seat)[0]
 
                 if already_booked:
                     break
@@ -132,7 +132,6 @@ def get_requested_date(url, day, start_time, end_time, time_shift):
         requested_day.strftime("%d.%m.%Y").split()[0]))
 
 
-
 def verify_slotowner(url, day, start_time, end_time, first_seat, last_seat):
     """
     Verifies if a seat is already booked for current day. Only called if seat available, but booking not possible.
@@ -142,7 +141,7 @@ def verify_slotowner(url, day, start_time, end_time, first_seat, last_seat):
     :param end_time: time to end booking, integer; last hour = 10 for HWA/ VWL, 17 for L4
     :param first_seat: seats to check, integer; loops from first to last
     :param last_seat: see above
-    :return: True if a seat is already booked, False if not
+    :return: returns list, [False] if no seat booked, [True, booked_seat, booked_start (time), day] if seat booked
     """
     verified = False
     for seat in range(first_seat, last_seat):
@@ -153,12 +152,58 @@ def verify_slotowner(url, day, start_time, end_time, first_seat, last_seat):
             if timeslot.get_attribute("class") == "slot booked slotowner normal":
                 duration = int(timeslot.get_attribute("rowspan"))
                 if url == url_l4[1] or url_vwl[1]:
-                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 7, hour+7+duration))
-                else:
-                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 8, hour+8+duration))
-                verified = True
-                break
-    return verified
+                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 7, hour + 7 + duration))
+                else:  # hwa
+                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 8, hour + 8 + duration))
+                verified, booked_seat, booked_start = True, seat, hour
+                return [verified, booked_seat, booked_start, day]
+    return [verified]
+
+
+def verify_cancel(url, day):
+    """
+    cancel a booking on website on given day
+    :param url: link, where seat is booked
+    :param day: int, day when seat is booked
+    :return: No return value
+    """
+    login(url)
+    if url == url_l4[1]:
+        verified = verify_slotowner(url, day, 3, 17, 1, 50)
+    elif url == url_vwl[1]:
+        verified = verify_slotowner(url, day, 3, 10, 1, 25)
+    else:  # hwa
+        verified = verify_slotowner(url, day, 3, 10, 1, 36)
+    if verified[0]:
+        verified_cancel(verified)
+    else:
+        print("No seat booked.")
+
+
+def verified_cancel(verified):
+    if not verified[0]:
+        print("No seat booked.")
+    verified_seat = driver.find_element(By.XPATH,
+                                        "/html/body/div[1]/div[3]/div/div/div/div[{0}]/div/div/div[2]/table/tbody/tr[{1}]/td[{2}]".format(
+                                            verified[3], verified[2], verified[1]))
+    verified_seat.click()
+    # click cancel button
+    cancel_button_xpath = "/html/body/div[1]/div[2]/div/div/ul/li[3]/button"
+    driver.find_element(By.XPATH, cancel_button_xpath).click()
+    # confirm cancelling
+    time.sleep(3)
+    confirm_xpath = "/html/body/div[2]/div/div/div[3]/button[1]"
+    driver.find_element(By.XPATH, confirm_xpath).click()
+    # check message
+    message = WebDriverWait(driver, 10).until(
+        EC.visibility_of_element_located((By.XPATH, "//div[contains(@class, 'alert') and "
+                                                    "@data-notify='container']//span["
+                                                    "@data-notify='message']"))).get_attribute(
+        "innerHTML")
+    if "Die Buchung wurde erfolgreich gelöscht" in message:
+        print("Booking cancelled successfully!")
+    else:
+        print(message)
 
 
 if __name__ == '__main__':
@@ -178,6 +223,9 @@ if __name__ == '__main__':
     start_time_script = datetime.datetime.now()
     print(start_time_script.replace(microsecond=0))
 
+    # can be used to cancel a seat at certain day and certain url
+    # verify_cancel(url_hwa[1], 1)
+
     # check l4 for booking, last day, 9AM - 3PM
     if booking(url_l4, 8, 3, 51, 3, 9) == False:
         # check VWL, last day, 9AM - 1PM
@@ -193,3 +241,4 @@ if __name__ == '__main__':
             else:
                 print("Could not book additional seat.")
     driver.quit()
+
