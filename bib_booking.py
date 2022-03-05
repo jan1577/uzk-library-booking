@@ -181,8 +181,6 @@ def verify_cancel(url, day):
 
 
 def verified_cancel(verified):
-    if not verified[0]:
-        print("No seat booked.")
     verified_seat = driver.find_element(By.XPATH,
                                         "/html/body/div[1]/div[3]/div/div/div/div[{0}]/div/div/div[2]/table/tbody/tr[{1}]/td[{2}]".format(
                                             verified[3], verified[2], verified[1]))
@@ -204,6 +202,8 @@ def verified_cancel(verified):
         print("Booking cancelled successfully!")
     else:
         print(message)
+    time.sleep(3)
+    driver.quit()
 
 
 if __name__ == '__main__':
