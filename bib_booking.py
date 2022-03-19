@@ -66,7 +66,10 @@ def booking(url, day, first_seat, last_seat, start, end):
                     "innerHTML")
                 if "Max. Buchung" in message:
                     print("Max. Buchungszeit! Keine Buchung möglich.")
-                    verify_slotowner(url, day, start, end, first_seat, last_seat)
+                    if url[1] == url_l4[1]:
+                        verify_slotowner(url, day, 3, 17, first_seat, last_seat)
+                    else:
+                        verify_slotowner(url, day, 3, 10, first_seat, last_seat)
                     break
                 elif "Buchung war erfolgreich." in message:
                     print("Booking confirmed! Seat {}".format(seat_id))
@@ -80,7 +83,7 @@ def booking(url, day, first_seat, last_seat, start, end):
             except:
                 # except: no message
                 # check if already booked hours for that day; verify slot owner returns boolean
-                if url[1] == url_l4:
+                if url[1] == url_l4[1]:
                     already_booked = verify_slotowner(url[1], day, 3, 17, first_seat, last_seat)[0]
                 else:
                     already_booked = verify_slotowner(url[1], day, 3, 10, first_seat, last_seat)[0]
@@ -112,6 +115,7 @@ def login(url):
         ex_message = str(ex.args)
         if "ERR_INTERNET_DISCONNECTED" in ex_message:
             print("No internet connection, trying to reconnect.")
+            # connecting to wifi
             cmd = "netsh wlan connect name={0} ssid={0}".format(wifi_SSID)
             k = subprocess.run(cmd, capture_output=True, text=True).stdout
             time.sleep(5)
