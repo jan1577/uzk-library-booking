@@ -10,6 +10,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 
 # import login credentials
 import config
+import subprocess
 
 
 def booking(url, day, first_seat, last_seat, start, end):
@@ -65,6 +66,7 @@ def booking(url, day, first_seat, last_seat, start, end):
                     "innerHTML")
                 if "Max. Buchung" in message:
                     print("Max. Buchungszeit! Keine Buchung möglich.")
+                    verify_slotowner(url, day, start, end, first_seat, last_seat)
                     break
                 elif "Buchung war erfolgreich." in message:
                     print("Booking confirmed! Seat {}".format(seat_id))
@@ -104,7 +106,22 @@ def login(url):
     :return: no return value
     """
     # opening the website in chrome
-    driver.get(url)
+    try:
+        driver.get(url)
+    except Exception as ex:
+        ex_message = str(ex.args)
+        if "ERR_INTERNET_DISCONNECTED" in ex_message:
+            print("No internet connection, trying to reconnect.")
+            cmd = "netsh wlan connect name={0} ssid={0}".format(wifi_SSID)
+            k = subprocess.run(cmd, capture_output=True, text=True).stdout
+            time.sleep(5)
+            try:
+                driver.get(url)
+                print("Reconnected succesfully.")
+            except:
+                print("Not able to reconnect.")
+        else:
+            print(ex_message)
     # find username field and insert username
     driver.find_element(By.NAME, "uid").send_keys(username)
     # find the password and insert password
@@ -152,9 +169,9 @@ def verify_slotowner(url, day, start_time, end_time, first_seat, last_seat):
             if timeslot.get_attribute("class") == "slot booked slotowner normal":
                 duration = int(timeslot.get_attribute("rowspan"))
                 if url == url_l4[1] or url_vwl[1]:
-                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 7, hour + 7 + duration))
+                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 6, hour + 6 + duration))
                 else:  # hwa
-                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 8, hour + 8 + duration))
+                    print("Already booked seat {0}, from {1} to {2}.".format(seat, hour + 7, hour + 7 + duration))
                 verified, booked_seat, booked_start = True, seat, hour
                 return [verified, booked_seat, booked_start, day]
     return [verified]
@@ -211,6 +228,8 @@ if __name__ == '__main__':
     username = config.username
     password = config.password
     path = config.path
+    # only used if no internet connection
+    wifi_SSID = config.wifi_SSID
     # urls for booking
     url_l4 = ("Lesesaal 4", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4")
     url_vwl = ("VWL", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL")
@@ -226,19 +245,24 @@ if __name__ == '__main__':
     # can be used to cancel a seat at certain day and certain url
     # verify_cancel(url_hwa[1], 1)
 
-    # check l4 for booking, last day, 9AM - 3PM
-    if booking(url_l4, 8, 3, 51, 3, 9) == False:
+    # check l4 for booking, last day, 9AM - 1PM
+    if booking(url_l4, 8, 1, 51, 3, 7):
+        # if l4 booked, book hwa from 2PM-6PM
+        booking(url_hwa, 8, 21, 36, 7, 11)
+    else:
         # check VWL, last day, 9AM - 1PM
-        if booking(url_vwl, 8, 5, 25, 3, 7) == False:
+        if not booking(url_vwl, 8, 5, 25, 3, 7):
             # check HWA, 10AM - 2PM
-            if booking(url_hwa, 8, 21, 36, 3, 7) == False:
+            if not booking(url_hwa, 8, 21, 36, 3, 7):
                 end_time_script = datetime.datetime.now()
                 print("\nBooking not possible. Execution time: {}".format(end_time_script - start_time_script))
-        # if VWL booked, try HWA from 3PM - 6PM
+            # if hwa booked from 10am - 2pm, try l4 and vwl from 3-6PM
+            elif not booking(url_l4, 8, 1, 51, 8, 12):
+                booking(url_vwl, 8, 5, 25, 8, 12)
+        # if VWL booked, try HWA from 2PM - 6PM
         else:
-            if booking(url_hwa, 8, 21, 36, 7, 11) == True:
+            if booking(url_hwa, 8, 21, 36, 6, 11):
                 print("Additional Seat booked at HWA.")
             else:
                 print("Could not book additional seat.")
     driver.quit()
-
