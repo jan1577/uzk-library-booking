@@ -1,6 +1,6 @@
 # Library_Booking
 
-This script can be used to automatically book seats at three differnent spots in the Library of Cologne University.
+This script can be used to automatically book seats at three different spots in the Library of Cologne University.
 
   https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4
   https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL
