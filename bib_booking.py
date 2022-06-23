@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.chrome.service import Service
 
 # import login credentials
 import config
@@ -231,16 +232,17 @@ if __name__ == '__main__':
     # login credentials & chromedriver.exe path
     username = config.username
     password = config.password
-    path = config.path
+    path = Service(config.path)
     # only used if no internet connection
     wifi_SSID = config.wifi_SSID
     # urls for booking
     url_l4 = ("Lesesaal 4", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4")
     url_vwl = ("VWL", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL")
     url_hwa = ("HWA", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS")
+    url_sociology = ("Soziologie", "https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOSOZ")
     # initialising driver
     chrome_options = Options()
-    driver = webdriver.Chrome(path, options=chrome_options)
+    driver = webdriver.Chrome(service=path, options=chrome_options)
     driver.maximize_window()
 
     start_time_script = datetime.datetime.now()
@@ -248,7 +250,7 @@ if __name__ == '__main__':
 
     # can be used to cancel a seat at certain day and certain url
     # verify_cancel(url_hwa[1], 1)
-
+    """
     # check l4 for booking, last day, 9AM - 1PM
     if booking(url_l4, 8, 1, 51, 3, 7):
         # if l4 booked, book hwa from 2PM-6PM
@@ -269,4 +271,7 @@ if __name__ == '__main__':
                 print("Additional Seat booked at HWA.")
             else:
                 print("Could not book additional seat.")
+    driver.quit()
+    """
+    booking(url_sociology, 8, 1, 10, 3, 7)
     driver.quit()
