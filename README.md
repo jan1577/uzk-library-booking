@@ -8,10 +8,10 @@ The scripts can be used to book seats at various places using chromedriver. Ther
 check out the websites provided below. As booking is enabled at midnight, booking automatically guarantees a place booked at the time and 
 place you want.
 
-  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4 - Main Library
-  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL - Economics Library
-  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS - Human Science Faculty Library
-  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOSOZ - Sociology Library
+  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4 - Main Library  
+  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL - Economics Library  
+  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/HWAEGLS - Human Science Faculty Library  
+  https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOSOZ - Sociology Library  
 
 ## Setup
 
