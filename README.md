@@ -15,7 +15,7 @@ place you want without having to stay up until midnight.
 
 ## Setup
 
-To run this project, install Chromedriver, available at https://chromedriver.chromium.org/downloads
+To run this project, install Chromedriver, available at https://chromedriver.chromium.org/downloads  
 Make sure to use the version matching your Chrome version (Settings -> About Chrome).
 If Chrome is updated, make sure to download the new version of Chromedriver.
 
@@ -25,6 +25,9 @@ Install the following package using pip:
 ```
 pip install -U selenium
 ```
+
+## Login Data
+
 To pass your login data, create a second file "config.py" with your login credentials, wifi SSID and the chromedriver path to import these into the script.
 The config.py file should look like this:
 ```
