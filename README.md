@@ -6,7 +6,7 @@ A script to automatically book seats in different Libraries at Cologne Universit
 
 The scripts can be used to book seats at various places using chromedriver. There is a limit of 4 to 6 hours per day and per place - for detailed information
 check out the websites provided below. As booking is enabled at midnight, booking automatically guarantees a place booked at the time and 
-place you want.
+place you want without having to stay up until midnight.
 
   https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/rooms/USBO1LS4 - Main Library  
   https://raumbuchung.ub.uni-koeln.de/raumbelegung/gar/export/index/wiso/WISOVWL - Economics Library  
